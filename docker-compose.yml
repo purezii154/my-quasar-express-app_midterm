@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Service 1: Backend API
+  backend:
+    build: ./backend
+    container_name: my-express-backend
+    ports:
+      - "3000:3000" # Expose ให้ Browser เรียกได้
+    volumes:
+      - ./backend/logs:/app/logs # Persist logs ไว้ที่เครื่องเรา
+    networks:
+      - app-network
+    restart: always
+
+  # Service 2: Frontend Quasar
+  frontend:
+    build: ./frontend
+    container_name: my-quasar-frontend
+    ports:
+      - "8080:80" # เข้าเว็บผ่าน http://localhost:8080
+    environment:
+      # หมายเหตุ: การแก้ Env ตรงนี้จะมีผลเฉพาะตอน Build ถ้า Dockerfile รองรับ
+      # สำหรับ SPA ควร Build Image ให้เรียบร้อย หรือใช้ Nginx Reverse Proxy ในขั้นสูงกว่านี้
+      - VITE_API_URL=http://localhost:3000
+    networks:
+      - app-network
+    depends_on:
+      - backend
+
+networks:
+  app-network:
+    driver: bridge
